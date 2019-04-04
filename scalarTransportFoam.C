@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    scalarTransportFoam
+    celleqn
 
 Description
     Solves the steady or transient transport equation for a passive scalar.
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    Info<< "\nCalculating scalar transport\n" << endl;
+    Info<< "\nCalculating chi\n" << endl;
 
     #include "CourantNo.H"
 
@@ -75,20 +75,26 @@ int main(int argc, char *argv[])
         }
 
 	//Gives vector field for grad(X)
-	//volVectorField gradT(fvc::grad(X));
+ 	volVectorField gradX(fvc::grad(X));
 	
-	//dimensionedTensor Id("I",dimless, tensor::I)
+ 	//dimensionedTensor Id("I",dimless,tensor::I);
+ 	dimensionedVector Id("I",dimless,vector(0,0,1));
+	dimensionedVector Id2("I2",dimless,vector(1,0,0));
 
-	//Sets up value of dispersion
-	//volTensorField DappMicro(Id + fvc::grad(X));
+ 	//Sets up both methods of dispersion calculation
+ 	volVectorField DappMicro(D*(Id + fvc::grad(X)) - U*X);
+	volScalarField DappMicro2(D*(fvc::grad(X)*fvc::grad(X)) + D*(Id&fvc::grad(X)) + D*(fvc::grad(X)&Id));
 
-	//Calculates integral in dispersion definition
-	//dimensionedScalar Dapp(DappMicro.weightedAverage(mesh.V()));
+	//volScalarField DappMicro2( D*(Id2+fvc::grad(X))&(Id+fvc::grad(X)) );
 
-	//Info << "Effective diffusion coefficient" << Dapp;
+	//Porosity = 7/9
+ 	//Calculates dispersion definition
+ 	dimensionedVector Dapp((9/7)*DappMicro.weightedAverage(mesh.V()));
+	dimensionedScalar Dapp2(D*(Id&Id) + (9/7)*DappMicro2.weightedAverage(mesh.V()));
+	
+ 	Info<< "Effective diffusion coefficient " << Dapp << endl;
+	Info<< "Effective diffusion coefficient2 " << Dapp2 << endl;
         runTime.write();
-
-	
     }
 
     Info<< "End\n" << endl;
