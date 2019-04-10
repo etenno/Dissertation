@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 
  	//Sets up both methods of dispersion calculation
  	volVectorField DappMicro(D*(Id + fvc::grad(X)) - U*X);
-	volScalarField DappMicro2(D*(fvc::grad(X)*fvc::grad(X)) + D*(Id&fvc::grad(X)) + D*(fvc::grad(X)&Id));
+	volScalarField DappMicro2(D*(fvc::grad(X)&fvc::grad(X)) + D*(Id&fvc::grad(X)) + D*(fvc::grad(X)&Id));
 
 	//volScalarField DappMicro2( D*(Id2+fvc::grad(X))&(Id+fvc::grad(X)) );
 
@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
  	dimensionedVector Dapp((9/7)*DappMicro.weightedAverage(mesh.V()));
 	dimensionedScalar Dapp2(D*(Id&Id) + (9/7)*DappMicro2.weightedAverage(mesh.V()));
 	
- 	Info<< "Effective diffusion coefficient " << Dapp << endl;
-	Info<< "Effective diffusion coefficient2 " << Dapp2 << endl;
+ 	Info<< "Effective diffusion coefficient : " << Dapp.value() << endl;
+	Info<< "Effective diffusion coefficient2 : " << Dapp2.value() << endl;
         runTime.write();
     }
 
